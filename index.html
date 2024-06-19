@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #task-container, .form-container {
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            margin: 20px;
+        }
+        .task {
+            border-bottom: 1px solid #ccc;
+            padding: 15px 0;
+        }
+        .task:last-child {
+            border-bottom: none;
+        }
+        .task-header {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .task-detail {
+            margin: 5px 0;
+            color: #666;
+        }
+        .form-container {
+            display: none;
+        }
+        .form-container input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-container button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .form-container button:disabled {
+            background-color: #ccc;
+        }
+        .form-container button:hover:enabled {
+            background-color: #0056b3;
+        }
+        .form-container h2 {
+            text-align: center;
+            color: #333;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+        }
+        #user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #user-level {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        #xp-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 25px;
+            overflow: hidden;
+        }
+        #xp-progress {
+            height: 20px;
+            background-color: #007bff;
+            width: 0;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+     <div style="background-color: #363f4c; color: white; padding: 10px 20px; display: flex; align-items: left; width:100%">
+        <img src="logo.png" alt="Logo" style="height: 100px;">
+    </div>
+    <div id="user-info">
+        <div id="user-level">Level: 1</div>
+        <div id="xp-bar">
+            <div id="xp-progress"></div>
+        </div>
+    </div>
+    <div id="task-container"></div>
+    <div id="login-container" class="form-container">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username">
+        <input type="password" id="login-password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <button onclick="showRegisterForm()">Register</button>
+        <div class="error-message" id="login-error"></div>
+    </div>
+    <div id="register-container" class="form-container">
+        <h2>Register</h2>
+        <input type="text" id="register-username" placeholder="Username">
+        <input type="email" id="register-email" placeholder="Email">
+        <input type="email" id="register-email-confirm" placeholder="Confirm Email">
+        <input type="password" id="register-password" placeholder="Password">
+        <button id="register-button" onclick="register()" disabled>Register</button>
+        <button onclick="showLoginForm()">Login</button>
+        <div class="error-message" id="register-error"></div>
+    </div>
+    <script>
+        let userToken = null; // Initially, the token is null
+        let userLevel = 1;
+        let userXP = 0;
+        const xpPerLevel = 100;
+
+        function updateUserInfo() {
+            document.getElementById('user-level').textContent = `Level: ${userLevel}`;
+            const xpProgress = document.getElementById('xp-progress');
+            xpProgress.style.width = `${(userXP % xpPerLevel) / xpPerLevel * 100}%`;
+        }
+
+        function addXP(xp) {
+            userXP += xp;
+            if (userXP >= userLevel * xpPerLevel) {
+                userLevel++;
+            }
+            updateUserInfo();
+        }
+
+        function fetchTasks() {
+            if (userToken === null) {
+                showLoginForm();
+                return;
+            }
+
+            fetch('/today', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(tasks => displayTasks(tasks))
+            .catch(error => {
+                console.error('Error fetching tasks:', error);
+                document.getElementById('task-container').textContent = 'Error loading tasks.';
+            });
+        }
+
+        function displayTasks(tasks) {
+            const taskContainer = document.getElementById('task-container');
+            taskContainer.innerHTML = ''; // Clear any existing content
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task';
+
+                const taskHeader = document.createElement('div');
+                taskHeader.className = 'task-header';
+                taskHeader.textContent = task['Task Name'];
+                taskDiv.appendChild(taskHeader);
+
+                for (const [key, value] of Object.entries(task)) {
+                    if (key !== 'Task Name') {
+                        const taskDetail = document.createElement('div');
+                        taskDetail.className = 'task-detail';
+                        taskDetail.innerHTML = `<strong>${key}:</strong> ${value}`;
+                        taskDiv.appendChild(taskDetail);
+                    }
+                }
+
+                // Add XP gained from completing the task
+                addXP(10); // Example: Each task gives 10 XP
+
+                taskContainer.appendChild(taskDiv);
+            });
+        }
+
+        function showLoginForm() {
+            // Hide user info
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('task-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('register-container').style.display = 'none';
+        }
+
+        function showRegisterForm() {
+            // Hide user info
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('task-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'block';
+        }
+
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                userToken = data.token;
+                fetchTasks();
+                // Show user info
+                document.getElementById('user-info').style.display = 'flex';
+                document.getElementById('task-container').style.display = 'block';
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('login-error').textContent = '';
+            })
+            .catch(error => {
+                console.error('Error logging in:', error);
+                document.getElementById('login-error').textContent = 'Login failed. Please try again.';
+            });
+        }
+
+        function register() {
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Registration failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                userToken = data.token;
+                fetchTasks();
+                document.getElementById('register-container').style.display = 'none';
+                document.getElementById('register-error').textContent = '';
+            })
+            .catch(error => {
+                console.error('Error registering:', error);
+                document.getElementById('register-error').textContent = 'Registration failed. Please try again.';
+            });
+        }
+
+        function validateRegisterForm() {
+            const email = document.getElementById('register-email').value;
+            const emailConfirm = document.getElementById('register-email-confirm').value;
+            const registerButton = document.getElementById('register-button');
+            
+            if (email && emailConfirm && email === emailConfirm && validateEmail(email)) {
+                registerButton.disabled = false;
+            } else {
+                registerButton.disabled = true;
+            }
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        document.getElementById('register-email').addEventListener('input', validateRegisterForm);
+        document.getElementById('register-email-confirm').addEventListener('input', validateRegisterForm);
+
+        // Initial call to fetch tasks
+        fetchTasks();
+        updateUserInfo();
+    </script>
+    
+
+    <div style="background-color: #363f4c; color: white; padding: 10px 20px; display: flex; align-items: center; width:100%">
+        <div style="flex: 1">© 2024 Leveled-Up Life, a 3DisturbedMonkeys project</div>
+        <div style="flex: 1; text-align: right">Privacy Policy | Terms of Service</div>
+    </div>
+</body>
+</html>
