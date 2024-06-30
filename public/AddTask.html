@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GamePlan - Add Task</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 100px;
+        }
+        .menu input {
+            display: none;
+        }
+        .menu label {
+            font-size: 30px;
+            cursor: pointer;
+        }
+        .menu ul {
+            display: none;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            background-color: #333;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        }
+        .menu ul li {
+            padding: 8px 12px;
+        }
+        .menu ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        .menu ul li a:hover {
+            background-color: #575757;
+        }
+        .menu input:checked + label + ul {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div style="background-color: #363f4c; position: absolute; top: 0px; left: 0px; color: white; padding: 10px 20px; display: flex; align-items: left; width:100%">
+        <img src="/logo.png" alt="Logo" style="height: 100px;">
+    </div>
+    <div id="user-info">
+        <div id="user-level">Level: 1</div>
+        <div id="xp-bar">
+            <div id="xp-progress"></div>
+        </div>
+    </div>
+    <div class="menu">
+        <input type="checkbox" id="menuToggle">
+        <label for="menuToggle">&#9776;</label>
+        <ul>
+            <li><a href="/tasks/add">Add Tasks</a></li>
+            <li><a href="/tasks/view">View Tasks</a></li>
+            <li><a href="/tasks/settings">Settings</a></li>
+            <li><a href="/auth/logout">Sign Out</a></li>
+        </ul>
+    </div>
+    <div class="container">
+        <h1>Add Task</h1>
+        <form action="/tasks/add" method="POST">
+            <input type="text" id="taskName" name="taskName" placeholder="Task Name" required>
+            <select id="priority" name="priority" required>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+            <select id="time" name="time" required>
+                <option value="30min">30 Minutes</option>
+                <option value="1hr">1 Hour</option>
+                <option value="2hr">2 Hours</option>
+                <option value="4hr">4 Hours</option>
+            </select>
+            <button type="submit">Add Task</button>
+        </form>
+    </div>
+    
+    <div style="background-color: #363f4c; position: absolute; top:100%; color: white; padding: 10px 20px; display: flex; align-items: center; width:100%">
+        <div style="flex: 1">© 2024 Leveled-Up Life, a 3DisturbedMonkeys project! </div>
+        <div style="flex: 1; text-align: right">Privacy Policy | Terms of Service</div>
+    </div>
+</body>
+</html>
